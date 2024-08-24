@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Mobile Details</title>
+    <style>
+        body {
+            font-family: 'Trebuchet MS', sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            font-size: 18px;
+            margin-bottom: 10px;
+            display: block;
+        }
+        select {
+            font-size: 16px;
+            padding: 10px;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #ff6f61;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease-in-out;
+        }
+        button:hover {
+            background-color: #ff4444;
+        }
+        .product-container {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .product-image {
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+        .product-detail {
+            margin-bottom: 10px;
+        }
+        .product-detail span {
+            font-weight: bold;
+        }
+        .product-title {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .product-colors {
+            margin-top: 10px;
+        }
+        .no-item {
+            display: none;
+            margin-top: 20px;
+            font-size: 18px;
+            color: #ff6f61;
+        }
+        .no-item-message {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Select Mobile Details</h1>
+        
+        <div class="form-group">
+            <label for="brand">Select Mobile Brand:</label>
+            <select id="brand" onchange="populateModels()">
+                <option value="">Select Brand</option>
+                <option value="Samsung">Samsung</option>
+                <option value="Apple">Apple</option>
+                <option value="Xiaomi">Xiaomi</option>
+                <option value="Realme">Realme</option>
+                <option value="Vivo">Vivo</option>
+                <!-- Add more brands as needed -->
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="model">Select Mobile Model:</label>
+            <select id="model" onchange="showProductDetails()">
+                <option value="">Select Model</option>
+                <!-- Model options will be populated based on brand selection -->
+            </select>
+        </div>
+
+
+        <button onclick="showProductDetails()">Show Details</button>
+
+        <div class="product-container" id="productContainer">
+            <img id="productImage" class="product-image" alt="Product Image">
+            <div class="product-title" id="productTitle"></div>
+            <div class="product-detail"><span>Price:</span> <span id="productPrice"></span></div>
+            <div class="product-detail"><span>RAM:</span> <span id="productRam"></span></div>
+            <div class="product-detail"><span>ROM:</span> <span id="productRom"></span></div>
+            <div class="product-detail"><span>Battery:</span> <span id="productBattery"></span></div>
+            <div class="product-detail"><span>Rating:</span> <span id="productRating" class="product-rating"></span></div>
+            <div class="product-detail"><span>Colors:</span></div>
+            <div id="productColors" class="product-colors"></div>
+        </div>
+
+        <div class="no-item" id="noItem">
+            <div class="no-item-message">No item found</div>
+        </div>
+    </div>
+
+    <script>
+        const models = {
+            "Samsung": ["Galaxy S21", "Galaxy A52", "Galaxy M31"],
+            "Apple": ["iPhone 12", "iPhone 11", "iPhone SE"],
+            "Xiaomi": ["Redmi Note 10", "Mi 11X", "Redmi 9 Power"],
+            "Realme": ["Realme 8 Pro", "Realme Narzo 30", "Realme X7"],
+            "Vivo": ["Vivo X60", "Vivo V21", "Vivo Y20"],
+            // Add more brands and models as needed
+        };
+
+        const productData = {
+            "Samsung": {
+                "Galaxy S21": {
+                    image: "https://images-cdn.ubuy.co.in/64d60c2531d4032e2728b6ec-like-new-samsung-galaxy-s21-5g-sm-g991u1.jpg",
+                    title: "Samsung Galaxy S21",
+                    price: "$799",
+                    ram: "8GB",
+                    rom: "128GB",
+                    battery: "4000mAh",
+                    rating: "8/10",
+                    colors: ["Phantom Gray", "Phantom White", "Phantom Violet"]
+                },
+                "Galaxy A52": {
+                    image: "data:image/jpeg;base64,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",
+                    title: "Samsung Galaxy A52",
+                    price: "$499",
+                    ram: "6GB",
+                    rom: "128GB",
+                    battery: "4500mAh",
+                    rating: "7/10",
+                    colors: ["Awesome Black", "Awesome White", "Awesome Blue"]
+                }
+                // Add more Samsung models as needed
+            },
+            "Apple": {
+                "iPhone 12": {
+                    image: "data:image/jpeg;base64,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",
+                    title: "Apple iPhone 12",
+                    price: "$699",
+                    ram: "4GB",
+                    rom: "64GB",
+                    battery: "2815mAh",
+                    rating: "9/10",
+                    colors: ["Black", "White", "Red"]
+                }
+                // Add more Apple models as needed
+            }
+            // Add more brands and models as needed
+        };
+
+        function populateModels() {
+            const brandSelect = document.getElementById('brand').value;
+            const modelSelect = document.getElementById('model');
+            modelSelect.innerHTML = '<option value="">Select Model</option>'; // Clear previous options
+
+            if (brandSelect && models[brandSelect]) {
+                models[brandSelect].forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    option.textContent = model;
+                    modelSelect.appendChild(option);
+                });
+            }
+        }
+
+        function showProductDetails() {
+            const brand = document.getElementById('brand').value;
+            const model = document.getElementById('model').value;
+
+            const productContainer = document.getElementById('productContainer');
+            const noItem = document.getElementById('noItem');
+
+            if (brand && model  && productData[brand] && productData[brand][model]) {
+                const product = productData[brand][model];
+                document.getElementById('productImage').src = product.image;
+                document.getElementById('productTitle').textContent = product.title;
+                document.getElementById('productPrice').textContent = product.price;
+                document.getElementById('productRam').textContent = product.ram;
+                document.getElementById('productRom').textContent = product.rom;
+                document.getElementById('productBattery').textContent = product.battery;
+                document.getElementById('productRating').textContent = product.rating;
+                document.getElementById('productColors').innerHTML = product.colors.join(', ');
+
+                productContainer.style.display = 'block';
+                noItem.style.display = 'none';
+            } else {
+                productContainer.style.display = 'none';
+                noItem.style.display = 'block';
+            }
+        }
+    </script>
+
+</body>
+</html>
